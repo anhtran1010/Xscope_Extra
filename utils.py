@@ -82,6 +82,66 @@ def bounds(split, num_input, input_type="fp"):
         b = torch.split(b, 10)
     return b
 
+def bounds_np(split, num_input, input_type="fp"):
+    b = []
+    upper_lim = max_normal
+    lower_lim = -max_normal
+    if input_type == "exp":
+        upper_lim = 307
+        lower_lim = -307
+    if split == "whole":
+        if num_input == 1:
+            b.append([[lower_lim], [upper_lim]])
+        elif num_input == 2:
+            b.append([[lower_lim, lower_lim], [upper_lim, upper_lim]])
+        else:
+            b.append([[lower_lim, lower_lim, lower_lim], [upper_lim, upper_lim, upper_lim]])
+
+    elif split == "two":
+        if num_input == 1:
+            b.append([[lower_lim], [0]])
+            b.append([[0], [upper_lim]])
+        elif num_input == 2:
+            b.append([[lower_lim, lower_lim], [0, 0]])
+            b.append([[0, 0],[upper_lim, upper_lim]])
+        else:
+            b.append([[lower_lim, lower_lim, lower_lim], [0, 0, 0]])
+            b.append([[0, 0,0], [upper_lim, upper_lim, upper_lim]])
+
+    else:
+        limits = [0.0, 1e-307, 1e-100, 1e-10, 1e-1, 1e0, 1e+1, 1e+10, 1e+100, 1e+307]
+        ranges = []
+        if input_type == "exp":
+            for i in range(len(limits) - 1):
+                x = limits[i]
+                y = limits[i + 1]
+                t = (min(x, y), max(x, y))
+                ranges.append(t)
+        else:
+            for i in range(len(limits) - 1):
+                x = limits[i]
+                y = limits[i + 1]
+                t = [[min(x, y)], [max(x, y)]]
+                ranges.append(t)
+                x = -limits[i]
+                y = -limits[i + 1]
+                t = [[min(x, y)], [max(x, y)]]
+                ranges.append(t)
+        if num_input == 1:
+            for r1 in ranges:
+                b.append(r1)
+        elif num_input == 2:
+            for r1 in ranges:
+                for r2 in ranges:
+                    bound = numpy.transpose(numpy.squeeze(numpy.array([r1,r2])))
+                    b.append(bound)
+        else:
+            for r1 in ranges:
+                for r2 in ranges:
+                    bound = numpy.transpose(numpy.squeeze(numpy.array([r1,r2,r2])))
+                    b.append(bound)
+    return b
+
 
 def is_inf_pos(val):
     if math.isinf(val):

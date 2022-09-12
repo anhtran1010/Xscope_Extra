@@ -11,6 +11,7 @@ from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.optim import optimize_acqf
 from botorch.acquisition.monte_carlo import qExpectedImprovement
 from botorch.sampling.samplers import SobolQMCNormalSampler
+from BGRT import BinaryGuidedRandomTesting
 
 # verbose = False
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -115,7 +116,7 @@ def run_optimizer(bounds, func, new_max, exp_name):
     if verbose: print(train_Y.max())
     result_logger.save_results(train_X[train_Y.argmax()], exp_name)
 
-def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, new_max: float):
+def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, new_max: float, optimizer: str="BGRT"):
     test_func.set_kernel(shared_lib)
     logger.info("Max value to replace: {}".format(str(new_max)))
     if input_type != "exp" and input_type != "fp":
@@ -131,7 +132,13 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
         initialize()
         g = partial(test_func.function_to_optimize, num_input=num_inputs, func_type=f, mode=input_type)
         for b in bounds(split=splitting, num_input=num_inputs, input_type=input_type):
-            run_optimizer(b, g, new_max, '|'.join(exp_name))
+            if optimizer == "BO":
+                run_optimizer(b, g, new_max, '|'.join(exp_name))
+            else:
+                bgrt = BinaryGuidedRandomTesting(b,g)
+                narrowed_inputs, best_values_found = bgrt.binary_guided_random_testing()
+                bgrt.print_output(narrowed_inputs, best_values_found)
+
 
 # -------------- Results --------------
 def print_results(shared_lib: str, number_sampling, range_splitting):
