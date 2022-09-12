@@ -12,6 +12,7 @@ from copy import deepcopy
 from argparse import ArgumentParser
 import numpy as np
 
+max_normal = 1e+307
 class RandomTesting(object):
     """
     Class for randomized testing.
@@ -151,7 +152,8 @@ class BinaryGuidedRandomTesting(RandomTesting):
             # target
             for input_configuration in new_configurations:
                 new_value = self.evaluate(input_configuration)
-                self.check_exception(new_value)
+                if self.check_exception(new_value):
+                    break
 
                 # If better value found, record it and the corresponding configuration
                 if abs(new_value-self.target_value) > largest_difference:
@@ -240,6 +242,7 @@ class BinaryGuidedRandomTesting(RandomTesting):
             else:
                 self.results["max_inf"] += 1
                 # self.save_trials_to_trigger(exp_name)
+            return True
 
         # Subnormals
         if np.isfinite(val):
@@ -249,9 +252,12 @@ class BinaryGuidedRandomTesting(RandomTesting):
                         self.results["min_under"] += 1
                     else:
                         self.results["max_under"] += 1
+            return True
 
         if np.isnan(val):
             self.results["nan"] += 1
+            return True
+        return False
 
     def print_output(self, narrowed_inputs, best_values_found):
         """
