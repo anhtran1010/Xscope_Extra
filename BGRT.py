@@ -51,6 +51,10 @@ class RandomTesting(object):
         self.target_value = target_value
         self.distant_value = distant_value
         self.function = function
+        self.results = {}
+        error_types = ["max_inf", "min_inf", "max_under", "min_under", "nan"]
+        for type in error_types:
+            self.results[type] = 0
 
     # def __str__(self):
     #     """
@@ -118,28 +122,6 @@ class BinaryGuidedRandomTesting(RandomTesting):
         self.configuration_generation_factor = configuration_generation_factor
         self.restart_probability = restart_probability
 
-    # def __str__(self):
-    #     """
-    #     String representation of this class
-    #     Binary Guided Random Testing:
-    #     Inputs  : {x: [1, 2], y: [2, 3]}
-    #     Function: sin(x)/x
-    #     Target  : 0
-    #     Distant : 1.7976931348623157e+308
-    #     Sampling: 10
-    #     Iters   : 100
-    #     New Conf: 2
-    #     Restart : 0.05
-    #     """
-    #     returning_str = "Binary Guided Random Testing:\n"
-    #     returning_str += super().__str__() + '\n'
-    #     returning_str += "Sampling".ljust(8) + ": " + str(self.sampling_factor) + '\n'
-    #     returning_str += "Iters".ljust(8) + ": " + str(self.termination_criteria_iterations) + '\n'
-    #     returning_str += "New Conf".ljust(8) + ": " + str(self.configuration_generation_factor) + '\n'
-    #     returning_str += "Restart".ljust(8) + ": " + str(self.restart_probability)
-    #
-    #     return returning_str
-
     def binary_guided_random_testing(self):
         """
         Gives the narrowest box and corresponding best values found from the given inputs for which symbolic expression
@@ -169,6 +151,7 @@ class BinaryGuidedRandomTesting(RandomTesting):
             # target
             for input_configuration in new_configurations:
                 new_value = self.evaluate(input_configuration)
+                self.check_exception(new_value)
 
                 # If better value found, record it and the corresponding configuration
                 if abs(new_value-self.target_value) > largest_difference:
@@ -248,6 +231,28 @@ class BinaryGuidedRandomTesting(RandomTesting):
 
         return best_value
 
+    def check_exception(self, val):
+        # Infinity
+        if np.isinf(val):
+            if val < 0.0:
+                self.results["min_inf"] += 1
+                # self.save_trials_to_trigger(exp_name)
+            else:
+                self.results["max_inf"] += 1
+                # self.save_trials_to_trigger(exp_name)
+
+        # Subnormals
+        if np.isfinite(val):
+            if val > -2.22e-308 and val < 2.22e-308:
+                if val != 0.0 and val != -0.0:
+                    if val < 0.0:
+                        self.results["min_under"] += 1
+                    else:
+                        self.results["max_under"] += 1
+
+        if np.isnan(val):
+            self.results["nan"] += 1
+
     def print_output(self, narrowed_inputs, best_values_found):
         """
         Prints the output of BGRT.
@@ -263,9 +268,17 @@ class BinaryGuidedRandomTesting(RandomTesting):
             Nothing
         """
         assert len(narrowed_inputs) == len(best_values_found)
-        for j in range(len(narrowed_inputs)):
-            print(str(j).rjust(3) + ": value: " + str(best_values_found[j]).rjust(23) + ", [", end='')
-            for key, val in narrowed_inputs[j].items():
-                print(str(key) + ": [" + str(val[0]).ljust(23) + ", " + str(val[1]).ljust(23) + "], ", end='')
-            print(']')
-        print()
+        # for j in range(len(narrowed_inputs)):
+        #     print(str(j).rjust(3) + ": value: " + str(best_values_found[j]).rjust(23) + ", [", end='')
+        #     for value in narrowed_inputs:
+        #         print(value)
+        #     print(']')
+        # print()
+        print('-------------- Results --------------')
+        error_types = ["max_inf", "min_inf", "max_under", "min_under", "nan"]
+        total_exception = 0
+        for type in error_types:
+            print('\t'+type+": ", self.results[type])
+        total_exception += sum(self.results.values())
+        print('\tTotal Exception: ', total_exception)
+        print('')
