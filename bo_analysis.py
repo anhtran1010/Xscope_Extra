@@ -131,7 +131,7 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
     for f in funcs:
         initialize()
         g = partial(test_func.function_to_optimize, num_input=num_inputs, func_type=f, mode=input_type)
-        for b in bounds(split=splitting, num_input=num_inputs, input_type=input_type):
+        for b in bounds_np(split=splitting, num_input=num_inputs, input_type=input_type):
             if optimizer == "BO":
                 run_optimizer(b, g, new_max, '|'.join(exp_name))
             else:

@@ -129,16 +129,16 @@ def bounds_np(split, num_input, input_type="fp"):
                 ranges.append(t)
         if num_input == 1:
             for r1 in ranges:
-                b.append(r1)
+                b.append(numpy.asarray(r1).astype('float64'))
         elif num_input == 2:
             for r1 in ranges:
                 for r2 in ranges:
-                    bound = numpy.transpose(numpy.squeeze(numpy.array([r1,r2])))
+                    bound = numpy.transpose(numpy.squeeze(numpy.array([r1,r2]).astype('float64')))
                     b.append(bound)
         else:
             for r1 in ranges:
                 for r2 in ranges:
-                    bound = numpy.transpose(numpy.squeeze(numpy.array([r1,r2,r2])))
+                    bound = numpy.transpose(numpy.squeeze(numpy.array([r1,r2,r2]).astype('float64')))
                     b.append(bound)
     return b
 

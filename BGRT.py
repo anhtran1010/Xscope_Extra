@@ -241,7 +241,7 @@ class BinaryGuidedRandomTesting(RandomTesting):
             # Values are drawn from the half-open interval [low, high + 2**-53)
             parameter_values = np.random.uniform(low=input_intervals[0], high=input_intervals[1])
             new_value = self.function(parameter_values)
-            if abs(new_value-self.target_value) < largest_difference:
+            if abs(new_value-self.target_value) > largest_difference:
                 largest_difference = abs(new_value-self.target_value)
                 best_value = new_value
                 # print(final_difference)
