@@ -4,14 +4,13 @@ Wei-Fan Chiang, Ganesh Gopalakrishnan, Zvonimir Rakamaric, and Alexey Solovyev. 
 This implementation is a modification of https://github.com/tanmaytirpankar/Seesaw/blob/code_revamp/src/RandomTesting.py by Tanmay Tirpankar
 '''
 
-from sympy import Symbol, sin, parse_expr
-from sympy.utilities import lambdify
-from random import uniform, random
+import logging
+from random import random
 from sys import float_info
 from copy import deepcopy
-from argparse import ArgumentParser
 import numpy as np
-
+logging.basicConfig(filename='Xscope.log', level=logging.INFO)
+logger = logging.getLogger(__name__)
 max_normal = 1e+307
 class RandomTesting(object):
     """
@@ -153,7 +152,7 @@ class BinaryGuidedRandomTesting(RandomTesting):
             for input_configuration in new_configurations:
                 new_value, new_param = self.evaluate(input_configuration)
                 if self.check_exception(new_value):
-                    print("parameter {} caused floating point error {}".format(new_param, new_value))
+                    logger.info("parameter {} caused floating point error {}".format(new_param, new_value))
                     break
 
                 # If better value found, record it and the corresponding configuration
