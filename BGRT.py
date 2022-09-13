@@ -286,7 +286,7 @@ class BinaryGuidedRandomTesting(RandomTesting):
         print('-------------- Results --------------')
         error_types = ["max_inf", "min_inf", "max_under", "min_under", "nan"]
         total_exception = sum(self.results.values())
-        if total_exception == 0:
+        if total_exception != 0:
             for type in error_types:
                 print('\t'+type+": ", self.results[type])
             print('\tTotal Exception: ', total_exception)
