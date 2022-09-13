@@ -137,6 +137,7 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
             else:
                 bgrt = BinaryGuidedRandomTesting(b,g)
                 narrowed_inputs, best_values_found = bgrt.binary_guided_random_testing()
+                print("Input bound is {}".format(b))
                 bgrt.print_output(narrowed_inputs, best_values_found)
 
 

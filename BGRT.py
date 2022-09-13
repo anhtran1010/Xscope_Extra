@@ -255,7 +255,7 @@ class BinaryGuidedRandomTesting(RandomTesting):
                         self.results["min_under"] += 1
                     else:
                         self.results["max_under"] += 1
-            return True
+                    return True
 
         if np.isnan(val):
             self.results["nan"] += 1
