@@ -151,8 +151,9 @@ class BinaryGuidedRandomTesting(RandomTesting):
             # Evaluating symbolic expression for each configuration to find the configuration giving closest value to
             # target
             for input_configuration in new_configurations:
-                new_value = self.evaluate(input_configuration)
+                new_value, new_param = self.evaluate(input_configuration)
                 if self.check_exception(new_value):
+                    print("parameter {} caused floating point error {}".format(new_param, new_value))
                     break
 
                 # If better value found, record it and the corresponding configuration
@@ -220,6 +221,7 @@ class BinaryGuidedRandomTesting(RandomTesting):
         """
         best_value = self.distant_value
         largest_difference = abs(self.distant_value - self.target_value)
+        best_param = np.zeros_like(input_intervals[0])
 
         # Random sampling sampling_factor-1 more times
         for i in range(self.sampling_factor):
@@ -229,9 +231,10 @@ class BinaryGuidedRandomTesting(RandomTesting):
             if abs(new_value-self.target_value) > largest_difference:
                 largest_difference = abs(new_value-self.target_value)
                 best_value = new_value
+                best_param = parameter_values
                 # print(final_difference)
 
-        return best_value
+        return best_value, best_param
 
     def check_exception(self, val):
         # Infinity
@@ -282,9 +285,9 @@ class BinaryGuidedRandomTesting(RandomTesting):
         # print()
         print('-------------- Results --------------')
         error_types = ["max_inf", "min_inf", "max_under", "min_under", "nan"]
-        total_exception = 0
-        for type in error_types:
-            print('\t'+type+": ", self.results[type])
-        total_exception += sum(self.results.values())
-        print('\tTotal Exception: ', total_exception)
+        total_exception = sum(self.results.values())
+        if total_exception == 0:
+            for type in error_types:
+                print('\t'+type+": ", self.results[type])
+            print('\tTotal Exception: ', total_exception)
         print('')
