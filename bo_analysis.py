@@ -130,15 +130,24 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
     logging.info('|'.join(exp_name))
     for f in funcs:
         initialize()
+        results = {}
+        for type in funcs:
+            results[type] = 0
         g = partial(test_func.function_to_optimize, num_input=num_inputs, func_type=f, mode=input_type)
         for b in bounds_np(split=splitting, num_input=num_inputs, input_type=input_type):
+            print("Input bound is {}".format(b))
             if optimizer == "BO":
                 run_optimizer(b, g, new_max, '|'.join(exp_name))
             else:
                 bgrt = BinaryGuidedRandomTesting(b,g)
                 narrowed_inputs, best_values_found = bgrt.binary_guided_random_testing()
-                print("Input bound is {}".format(b))
-                bgrt.print_output(narrowed_inputs, best_values_found)
+                for type in funcs:
+                    results[type] += bgrt.results[type]
+        total_exception = 0
+        for type in funcs:
+            print('\t' + type + ": ", results[type])
+            total_exception += results[type]
+        print('\tTotal Exception: ', total_exception)
 
 
 # -------------- Results --------------
