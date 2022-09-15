@@ -12,6 +12,9 @@ from botorch.optim import optimize_acqf
 from botorch.acquisition.monte_carlo import qExpectedImprovement
 from botorch.sampling.samplers import SobolQMCNormalSampler
 from BGRT import BinaryGuidedRandomTesting
+import matplotlib.pyplot as plt
+from itertools import cycle
+cycol = cycle('bgrcmk')
 
 # verbose = False
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -129,14 +132,15 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
     exp_name = [shared_lib, input_type, splitting]
     logging.info('|'.join(exp_name))
     results = {}
+    exception_induced_params = {}
     for type in funcs:
         results[type] = 0
+        exception_induced_params[type] = set()
     for f in funcs:
         initialize()
 
         g = partial(test_func.function_to_optimize, num_input=num_inputs, func_type=f, mode=input_type)
         for b in bounds_np(split=splitting, num_input=num_inputs, input_type=input_type):
-            print("Input bound is {}".format(b))
             if optimizer == "BO":
                 run_optimizer(b, g, new_max, '|'.join(exp_name))
             else:
@@ -144,14 +148,29 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
                 bgrt.binary_guided_random_testing()
                 for type in funcs:
                     results[type] += bgrt.results[type]
+                    exception_induced_params[type] += bgrt.exception_induced_params[type]
                 del bgrt
     total_exception = 0
     for type in funcs:
         print('\t' + type + ": ", results[type])
         total_exception += results[type]
     print('\tTotal Exception: ', total_exception)
-
-
+    fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+    if num_inputs == 1:
+        for type in funcs:
+            max_inf = numpy.array(exception_induced_params[type])
+            ax.scatter(max_inf, numpy.zeros_like(max_inf), c=next(cycol))
+    elif num_inputs == 2:
+        for type in funcs:
+            max_inf = numpy.array(exception_induced_params[type])
+            ax.scatter(max_inf[0], max_inf[1], c=next(cycol))
+    elif num_inputs == 3:
+        ax = plt.axes(projection='3d')
+        for type in funcs:
+            max_inf = numpy.array(exception_induced_params[type])
+            ax.scatter(max_inf[0], max_inf[1], max_inf[3], c=next(cycol))
+    ax.set_title('Exception Induced Input')
+    plt.show()
 # -------------- Results --------------
 def print_results(shared_lib: str, number_sampling, range_splitting):
     result_logger.print_result(shared_lib, number_sampling, range_splitting, logger)

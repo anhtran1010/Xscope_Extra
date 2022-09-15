@@ -52,9 +52,11 @@ class RandomTesting(object):
         self.distant_value = distant_value
         self.function = function
         self.results = {}
+        self.exception_induced_params = {}
         error_types = ["max_inf", "min_inf", "max_under", "min_under", "nan"]
         for type in error_types:
             self.results[type] = 0
+            self.exception_induced_params[type] = set()
 
     # def __str__(self):
     #     """
@@ -151,7 +153,7 @@ class BinaryGuidedRandomTesting(RandomTesting):
             # target
             for input_configuration in new_configurations:
                 new_value, new_param = self.evaluate(input_configuration)
-                if self.check_exception(new_value):
+                if self.check_exception(new_param, new_value):
                     logger.info("parameter {} caused floating point error {}".format(new_param, new_value))
                     break
 
@@ -235,14 +237,16 @@ class BinaryGuidedRandomTesting(RandomTesting):
 
         return best_value, best_param
 
-    def check_exception(self, val):
+    def check_exception(self, param, val):
         # Infinity
         if np.isinf(val):
             if val < 0.0:
                 self.results["min_inf"] += 1
+                self.exception_induced_params["min_inf"].add(param)
                 # self.save_trials_to_trigger(exp_name)
             else:
                 self.results["max_inf"] += 1
+                self.exception_induced_params["max_inf"].add(param)
                 # self.save_trials_to_trigger(exp_name)
             return True
 
@@ -252,12 +256,15 @@ class BinaryGuidedRandomTesting(RandomTesting):
                 if val != 0.0 and val != -0.0:
                     if val < 0.0:
                         self.results["min_under"] += 1
+                        self.exception_induced_params["min_under"].add(param)
                     else:
                         self.results["max_under"] += 1
+                        self.exception_induced_params["max_under"].add(param)
                     return True
 
         if np.isnan(val):
             self.results["nan"] += 1
+            self.exception_induced_params["nan"].add(param)
             return True
         return False
 
