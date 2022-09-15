@@ -159,6 +159,7 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
     if num_inputs == 1:
         for type in funcs:
             max_inf = numpy.array(exception_induced_params[type])
+            print(max_inf.shape)
             ax.scatter(max_inf, numpy.zeros_like(max_inf), c=next(cycol))
     elif num_inputs == 2:
         for type in funcs:

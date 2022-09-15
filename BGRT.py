@@ -56,7 +56,7 @@ class RandomTesting(object):
         error_types = ["max_inf", "min_inf", "max_under", "min_under", "nan"]
         for type in error_types:
             self.results[type] = 0
-            self.exception_induced_params[type] = set()
+            self.exception_induced_params[type] = []
 
     # def __str__(self):
     #     """
@@ -242,11 +242,11 @@ class BinaryGuidedRandomTesting(RandomTesting):
         if np.isinf(val):
             if val < 0.0:
                 self.results["min_inf"] += 1
-                self.exception_induced_params["min_inf"].add(param)
+                self.exception_induced_params["min_inf"].append(param)
                 # self.save_trials_to_trigger(exp_name)
             else:
                 self.results["max_inf"] += 1
-                self.exception_induced_params["max_inf"].add(param)
+                self.exception_induced_params["max_inf"].append(param)
                 # self.save_trials_to_trigger(exp_name)
             return True
 
@@ -256,15 +256,15 @@ class BinaryGuidedRandomTesting(RandomTesting):
                 if val != 0.0 and val != -0.0:
                     if val < 0.0:
                         self.results["min_under"] += 1
-                        self.exception_induced_params["min_under"].add(param)
+                        self.exception_induced_params["min_under"].append(param)
                     else:
                         self.results["max_under"] += 1
-                        self.exception_induced_params["max_under"].add(param)
+                        self.exception_induced_params["max_under"].append(param)
                     return True
 
         if np.isnan(val):
             self.results["nan"] += 1
-            self.exception_induced_params["nan"].add(param)
+            self.exception_induced_params["nan"].append(param)
             return True
         return False
 
