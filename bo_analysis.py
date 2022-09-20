@@ -154,10 +154,12 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
             else:
                 bgrt = BinaryGuidedRandomTesting(b,g)
                 bgrt.binary_guided_random_testing()
+                error_count = 0
                 for type in funcs:
                     results[type] += bgrt.results[type]
                     exception_induced_params[type] += bgrt.exception_induced_params[type]
-                total_error_per_bound.append(sum(bgrt.exception_induced_params.values()))
+                    error_count += len(bgrt.exception_induced_params[type])
+                total_error_per_bound.append(error_count)
                 del bgrt
     total_exception = 0
 
