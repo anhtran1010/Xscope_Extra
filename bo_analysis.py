@@ -167,8 +167,8 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
         print('\t' + type + ": ", results[type])
         total_exception += results[type]
     print('\tTotal Exception: ', total_exception)
-    bgrt_bo_data = {'Function': shared_lib,
-                    'BGRT': total_exception}
+    bgrt_bo_data = {'Function': [shared_lib],
+                    'BGRT': [total_exception]}
     bgrt_interval_data = {}
     bgrt_interval_data['Function'] = [shared_lib]
     for bound, total_error in zip(bounds, total_error_per_bound):
