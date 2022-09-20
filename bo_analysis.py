@@ -12,8 +12,9 @@ from botorch.optim import optimize_acqf
 from botorch.acquisition.monte_carlo import qExpectedImprovement
 from botorch.sampling.samplers import SobolQMCNormalSampler
 from BGRT import BinaryGuidedRandomTesting
-import matplotlib.pyplot as plt
 from itertools import cycle
+import pandas as pd
+from os.path import isfile
 cycol = cycle('bgrcmk')
 
 # verbose = False
@@ -120,6 +121,7 @@ def run_optimizer(bounds, func, new_max, exp_name):
     result_logger.save_results(train_X[train_Y.argmax()], exp_name)
 
 def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, new_max: float, optimizer: str="BGRT"):
+    bgrt_bo_compare = "bgrt_bo_compare.csv"
     test_func.set_kernel(shared_lib)
     logger.info("Max value to replace: {}".format(str(new_max)))
     if input_type != "exp" and input_type != "fp":
@@ -133,14 +135,20 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
     logging.info('|'.join(exp_name))
     results = {}
     exception_induced_params = {}
+    bounds = []
+    total_error_per_bound = []
     for type in funcs:
         results[type] = 0
-        exception_induced_params[type] = set()
+        exception_induced_params[type] = []
     for f in funcs:
         initialize()
 
         g = partial(test_func.function_to_optimize, num_input=num_inputs, func_type=f, mode=input_type)
         for b in bounds_np(split=splitting, num_input=num_inputs, input_type=input_type):
+            bound_string = " "
+            for i in range(len(b[0])):
+                bound_string += "" + str(b[0][i]) + "-" + str(b[1][i])
+            bounds.append(bound_string)
             if optimizer == "BO":
                 run_optimizer(b, g, new_max, '|'.join(exp_name))
             else:
@@ -149,29 +157,41 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
                 for type in funcs:
                     results[type] += bgrt.results[type]
                     exception_induced_params[type] += bgrt.exception_induced_params[type]
+                total_error_per_bound.append(sum(bgrt.exception_induced_params.values()))
                 del bgrt
     total_exception = 0
+
     for type in funcs:
         print('\t' + type + ": ", results[type])
         total_exception += results[type]
     print('\tTotal Exception: ', total_exception)
-    fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-    if num_inputs == 1:
-        for type in funcs:
-            max_inf = numpy.array(exception_induced_params[type])
-            print(max_inf.shape)
-            ax.scatter(max_inf, numpy.zeros_like(max_inf), c=next(cycol))
-    elif num_inputs == 2:
-        for type in funcs:
-            max_inf = numpy.array(exception_induced_params[type])
-            ax.scatter(max_inf[0], max_inf[1], c=next(cycol))
-    elif num_inputs == 3:
-        ax = plt.axes(projection='3d')
-        for type in funcs:
-            max_inf = numpy.array(exception_induced_params[type])
-            ax.scatter(max_inf[0], max_inf[1], max_inf[3], c=next(cycol))
-    ax.set_title('Exception Induced Input')
-    plt.show()
+    bgrt_bo_data = {'Function': exp_name,
+                    'BGRT': total_exception}
+    bgrt_interval_data = {}
+    bgrt_interval_data['Function'] = [exp_name]
+    for bound, total_error in zip(bounds, total_error_per_bound):
+        bgrt_interval_data[bound]= [total_error]
+
+    bgrt_bo_df = pd.DataFrame(bgrt_bo_data)
+    bgrt_interval_df = pd.DataFrame(bgrt_interval_data)
+
+    if num_inputs==1:
+        bgrt_interval_density = "bgrt_interval_density_1.csv"
+    elif num_inputs==2:
+        bgrt_interval_density = "bgrt_interval_density_2.csv"
+    else:
+        bgrt_interval_density = "bgrt_interval_density_3.csv"
+
+    if isfile(bgrt_interval_density):
+        bgrt_interval_df.to_csv(bgrt_interval_density, mode='a', index=False, header=False)
+    else:
+        bgrt_interval_df.to_csv(bgrt_interval_density, index=False)
+
+    if isfile(bgrt_bo_compare):
+        bgrt_bo_df.to_csv(bgrt_bo_compare, mode='a', index=False, header=False)
+    else:
+        bgrt_bo_df.to_csv(bgrt_bo_compare, index=False)
+
 # -------------- Results --------------
 def print_results(shared_lib: str, number_sampling, range_splitting):
     result_logger.print_result(shared_lib, number_sampling, range_splitting, logger)
