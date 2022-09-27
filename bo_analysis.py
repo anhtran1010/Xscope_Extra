@@ -12,10 +12,10 @@ from botorch.optim import optimize_acqf
 from botorch.acquisition.monte_carlo import qExpectedImprovement
 from botorch.sampling.samplers import SobolQMCNormalSampler
 from BGRT import BinaryGuidedRandomTesting
-from itertools import cycle
+import time
 import pandas as pd
 from os.path import isfile
-cycol = cycle('bgrcmk')
+
 
 # verbose = False
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -130,7 +130,7 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
 
     assert num_inputs >= 1 and num_inputs <= 3
 
-    funcs = ["max_inf", "min_inf", "max_under", "min_under"]
+    funcs = ["max_inf", "min_inf", "max_under", "min_under", "nan"]
     exp_name = [shared_lib, input_type, splitting]
     logging.info('|'.join(exp_name))
     results = {}
@@ -140,7 +140,8 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
     for type in funcs:
         results[type] = 0
         exception_induced_params[type] = []
-    for f in funcs:
+    start_time = time.time()
+    for f in funcs[:-1]:
         initialize()
 
         g = partial(test_func.function_to_optimize, num_input=num_inputs, func_type=f, mode=input_type)
@@ -161,14 +162,16 @@ def optimize(shared_lib: str, input_type: str, num_inputs: int, splitting: str, 
                     error_count += len(bgrt.exception_induced_params[type])
                 total_error_per_bound.append(error_count)
                 del bgrt
+    execution_time = time.time() - start_time
     total_exception = 0
-
+    bgrt_bo_data = {'Function': [shared_lib]}
     for type in funcs:
         print('\t' + type + ": ", results[type])
+        bgrt_bo_data[type] = [results[type]]
         total_exception += results[type]
     print('\tTotal Exception: ', total_exception)
-    bgrt_bo_data = {'Function': [shared_lib],
-                    'BGRT': [total_exception]}
+    bgrt_bo_data.update({'Total Exception': [total_exception],
+                    'Execution Time': [execution_time]})
     bgrt_interval_data = {}
     bgrt_interval_data['Function'] = [shared_lib]
     for bound, total_error in zip(bounds, total_error_per_bound):
