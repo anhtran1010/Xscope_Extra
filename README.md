@@ -1,7 +1,7 @@
-# XScope
+# FPBOXer
 
-XScope finds inputs that trigger floating-point exceptions, such as NaN (not a number) and 
-infinity, in CUDA functions using Bayesian optimization (BO). XScope assumes that the CUDA 
+FPBOXer finds inputs that trigger floating-point exceptions, such as NaN (not a number) and 
+infinity, in CUDA functions using Bayesian optimization (BO). FPBOXer assumes that the CUDA 
 functions are a black box, i.e., the source code is not available. It searches the input space 
 using several methods to guide BO into extreme cases. When an input is found to trigger an 
 exception in the target CUDA function, the input is shown to the user.
@@ -14,7 +14,16 @@ High Performance Computing, Networking, Storage and Analysis (SC22), Dallas, TX,
 USA, Nov 13-18, 2022.
 ```
 
-To reproduce the SC22 paper results, see `reproducing_SC22_results.md`.  
+### Requirements
+
+To create a virtual environment and install all the required package:
+```
+python -m venv BO-env
+
+source BO-env/bin/activate
+
+pip install -r requirements.txt
+```
 
 ### Driver
 The main driver is `xscope`, which takes several options:
@@ -42,8 +51,10 @@ optional arguments:
                         Use random sampling unbounded
   -c, --clean           Remove temporal directories (begin with _tmp_)
 ```
-
-
+Example run:
+```
+python xscope.py functions_to_test.txt -r 3
+```
 ### License
 XScope is distributed under the terms of the MPI license. 
 All new contributions must be made under the MIT license.
