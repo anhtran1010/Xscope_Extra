@@ -15,8 +15,8 @@ verbose = True
 CUDA_LIB = ''
 bo_iterations = 25  # number of iteration
 
-logging.basicConfig(filename='Xscope.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 max_normal = 1e+307
 def set_max_iterations(n: int):
     global bo_iterations

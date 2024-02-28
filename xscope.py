@@ -172,8 +172,11 @@ if __name__ == "__main__":
   parser.add_argument('--random_sampling', action='store_true', help='Use random sampling')
   parser.add_argument('--random_sampling_unb', action='store_true', help='Use random sampling unbounded')
   parser.add_argument('-c', '--clean', action='store_true', help='Remove temporal directories (begin with _tmp_)')
+  parser.add_argument('-o', '--outfile', type=str, default='Xscope.log', help='The output file to store the result')
   args = parser.parse_args()
-
+  output_file = args.outfile
+  logging.basicConfig(filename=output_file, level=logging.INFO)
+  logger = logging.getLogger(__name__)
   # --------- Cleaning -------------
   if (args.clean):
     print('Removing temporal dirs...')

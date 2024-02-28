@@ -1,5 +1,5 @@
 #FUNCTION:acos (double)
-#FUNCTION:acosh (double)
+FUNCTION:acosh (double)
 #FUNCTION:asin (double)
 #FUNCTION:asinh (double)
 #FUNCTION:atan (double)
@@ -69,7 +69,7 @@
 #SHARED_LIB:./app_kernels/exaMiniMD/cuda_code_examinimd.cu.so, 3, single
 #SHARED_LIB:./app_kernels/HPCCG/cuda_code_hpccg.cu.so, 2, single
 #SHARED_LIB:./app_kernels/miniFE/cuda_code_minife.cu.so, 2, single
-SHARED_LIB:./app_kernels/eigen/eigen_determinant.so, 16, singles
+#SHARED_LIB:./app_kernels/eigen/eigen_determinant.so, 16, singles
 #SHARED_LIB:./app_kernels/eigen/eigen_BDCSVD_4.so, 20, single
 #SHARED_LIB:./app_kernels/eigen/eigen_BDCSVD_2.so, 6, single
 #SHARED_LIB:./app_kernels/eigen/eigen_BDCSVD_2_o1.so, 6, single

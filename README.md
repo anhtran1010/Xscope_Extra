@@ -50,6 +50,7 @@ optional arguments:
   --random_sampling_unb
                         Use random sampling unbounded
   -c, --clean           Remove temporal directories (begin with _tmp_)
+  -o, --outfile         The output file to store all the result
 ```
 Example run:
 ```

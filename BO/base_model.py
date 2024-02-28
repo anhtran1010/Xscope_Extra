@@ -3,7 +3,6 @@ from BO.init import *
 from abc import ABC, abstractmethod
 
 dtype = torch.float64
-logging.basicConfig(filename='Xscope.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class bo_base(ABC):
